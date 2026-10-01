@@ -662,13 +662,25 @@ func match(metadata *C.Metadata, helper C.RuleMatchHelper) (C.Proxy, C.Rule, err
 	GetRules:
 		for _, rule := range getRules(metadata) {
 			if matched, ada := rule.Match(metadata, helper); matched {
-				adapter, ok := proxies[ada]
+			adapter, ok := proxies[ada]
 				if !ok {
 					continue
 				}
 
+				// 命中"服务签名"类规则时记录下来，smart 组据此按服务维度分别比较节点
+				if smartRuleType(rule.RuleType()) {
+					if rule.RuleType().String() != "GEOIP" || !countryCodeRegex.MatchString(rule.Payload()) {
+						metadata.SmartTarget = fmt.Sprintf("%s [%s]", rule.RuleType().String(), rule.Payload())
+					}
+				}
+
+				smart := false
+
 				// parse multi-layer nesting
 				for adapter := adapter; adapter != nil; adapter = adapter.Unwrap(metadata, false) {
+					if adapter.Type() == C.Smart {
+						smart = true
+					}
 					if adapter.Type() == C.Pass {
 						log.Debugln("%s match Pass rule", adapter.Name())
 						continue GetRules
@@ -679,6 +691,12 @@ func match(metadata *C.Metadata, helper C.RuleMatchHelper) (C.Proxy, C.Rule, err
 						rematchRule = rule
 						break GetRules
 					}
+				}
+
+				if !smart {
+					metadata.SmartTarget = ""
+				} else {
+					metadata.SmartBlock = "normal"
 				}
 
 				if metadata.NetWork == C.UDP && !adapter.SupportUDP() {
