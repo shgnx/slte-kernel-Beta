@@ -1,4 +1,4 @@
-//go:build linux
+//go:build (linux) && cmfa_smart
 
 package tcpstats
 

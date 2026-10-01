@@ -1,3 +1,5 @@
+//go:build cmfa_smart
+
 package cachefile
 
 // bucketSmartStats 是 smart 组统计数据的存储桶。

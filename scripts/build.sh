@@ -21,9 +21,10 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # 上游内核版本：写进 mihomo 的 constant.Version，会显示在 App 的「关于」页
 : "${SLTE_MIHOMO_VERSION:=v1.19.30}"
 
-# 构建标签：android 隐含 linux（Go 对 GOOS=android 的既有约定），
-# native/platform 下的 `// +build linux` 文件因此才会被编入
-: "${SLTE_GO_TAGS:=android cmfa with_gvisor}"
+# 内核 id：决定构建标签与默认产物名。同一份源码产出两个**能力不同**的内核：
+#   mihomo —— 原版，不含智能组
+#   smart  —— 追加 cmfa_smart 标签，编入智能组
+: "${SLTE_KERNEL:=mihomo}"
 
 # 工具链必须与既有产物一致，否则等于换了一个内核运行时
 : "${SLTE_GO_TOOLCHAIN:=go1.26.4}"
@@ -33,10 +34,32 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 : "${SLTE_OUT:=$ROOT/dist}"
 
+# base tags：android 隐含 linux（Go 对 GOOS=android 的既有约定），
+# native/platform 下的 `// +build linux` 文件因此才会被编入。
+: "${SLTE_BASE_TAGS:=android cmfa with_gvisor}"
+
+case "$SLTE_KERNEL" in
+    mihomo)
+        SLTE_KERNEL_TAGS=""
+        SLTE_DEFAULT_ARTIFACT="libclash.so"
+        ;;
+    smart)
+        SLTE_KERNEL_TAGS="cmfa_smart"
+        SLTE_DEFAULT_ARTIFACT="libclash_smart.so"
+        ;;
+    *)
+        echo "不支持的内核：${SLTE_KERNEL}（可选 mihomo / smart）" >&2
+        exit 1
+        ;;
+esac
+
+: "${SLTE_KERNEL_TAGS:=}"
+: "${SLTE_GO_TAGS:=$SLTE_BASE_TAGS${SLTE_KERNEL_TAGS:+ $SLTE_KERNEL_TAGS}}"
+
 # 产物文件名。必须与应用仓库 kernels.json 里该内核的 `artifact` 完全一致：
 # Go 的 c-shared 产物没有 SONAME，应用侧 C 桥记录下来的依赖名就是链接时的文件名，
 # 名字对不上会在运行期报 "library not found"。
-: "${SLTE_ARTIFACT:=libclash.so}"
+: "${SLTE_ARTIFACT:=$SLTE_DEFAULT_ARTIFACT}"
 
 # ---------------------------------------------------------------------------
 
@@ -86,6 +109,7 @@ TARGET="$SLTE_OUT/$SLTE_ARTIFACT"
 echo "==> 工具链"
 echo "    Go        : $(GOTOOLCHAIN=$SLTE_GO_TOOLCHAIN go version)"
 echo "    CC        : $CLANG"
+echo "    内核      : $SLTE_KERNEL"
 echo "    tags      : $SLTE_GO_TAGS"
 echo "    mihomo    : $SLTE_MIHOMO_VERSION"
 echo "    产物名    : $SLTE_ARTIFACT"

@@ -1,3 +1,5 @@
+//go:build cmfa_smart
+
 package smart
 
 import (

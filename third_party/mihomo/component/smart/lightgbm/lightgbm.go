@@ -1,3 +1,5 @@
+//go:build cmfa_smart
+
 // Package lightgbm 是 SLTE 对上游 mihomo-smart 中 LightGBM 预测引擎的替代实现。
 //
 // ## 为什么是空实现
