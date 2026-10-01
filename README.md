@@ -24,15 +24,18 @@ SLTE 的内核构建仓库。
 ./scripts/build.sh
 ```
 
-构建 smart 内核（产物名必须与 `kernels.json` 里的 `artifact` 一致）：
+内核用构建标签切分，同一份源码产出两个**能力不同**的产物：
 
 ```bash
-SLTE_ARTIFACT=libclash_smart.so ./scripts/build.sh
+SLTE_KERNEL=mihomo ./scripts/build.sh    # 原版内核（默认）→ libclash.so
+SLTE_KERNEL=smart  ./scripts/build.sh    # 智能内核       → libclash_smart.so
 ```
 
+`smart` 追加 `cmfa_smart` 标签，编入 `component/smart/**` 与智能策略组；原版内核里
+`type: smart` 会**显式报错**（不静默降级），两者是真正的两份能力，而不是同一个二进制的两个名字。
+
 > 产物没有 SONAME，应用侧 C 桥记录下来的依赖名就是这里的文件名——**改名字必须同时
-> 改 `kernels.json`**，否则运行期会报 library not found。smart 分支见
-> `git log wip/smart`（含 LightGBM 替换为统计权重的原因说明）。
+> 改 `kernels.json`**，否则运行期会报 library not found。`SLTE_ARTIFACT` 可覆盖产物名。
 
 需要：Go（脚本会用 `GOTOOLCHAIN` 拉到指定版本）、Android NDK 28.2。
 可用环境变量覆盖：`SLTE_ABI` / `SLTE_MIHOMO_VERSION` / `SLTE_GO_TOOLCHAIN` /
