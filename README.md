@@ -5,6 +5,9 @@ SLTE 的内核构建仓库。
 应用仓库（`slte` / `slte-Beta`）**只保留预编译内核二进制**（`libclash.so` + 摘要 + 构建记录），
 不再携带上游内核源码；需要重建或新增内核时在本仓库进行。
 
+> **远端**：`beta` → https://github.com/shgnx/slte-kernel-Beta （当前用于测试与源码可得性）
+> 稳定仓库 `slte-kernel` 创建后作为 `origin` 加入，两者按应用仓 `slte` / `slte-Beta` 的同款方式并行维护。
+
 ## 目录
 
 | 路径 | 说明 |
