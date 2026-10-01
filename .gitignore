@@ -1,0 +1,8 @@
+dist/
+bin/
+
+# 构建残留
+*.o
+*.a
+*.test
+third_party/*/.git/
