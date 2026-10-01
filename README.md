@@ -24,6 +24,16 @@ SLTE 的内核构建仓库。
 ./scripts/build.sh
 ```
 
+构建 smart 内核（产物名必须与 `kernels.json` 里的 `artifact` 一致）：
+
+```bash
+SLTE_ARTIFACT=libclash_smart.so ./scripts/build.sh
+```
+
+> 产物没有 SONAME，应用侧 C 桥记录下来的依赖名就是这里的文件名——**改名字必须同时
+> 改 `kernels.json`**，否则运行期会报 library not found。smart 分支见
+> `git log wip/smart`（含 LightGBM 替换为统计权重的原因说明）。
+
 需要：Go（脚本会用 `GOTOOLCHAIN` 拉到指定版本）、Android NDK 28.2。
 可用环境变量覆盖：`SLTE_ABI` / `SLTE_MIHOMO_VERSION` / `SLTE_GO_TOOLCHAIN` /
 `SLTE_NDK_VERSION` / `NDK_HOME` / `SLTE_OUT`。

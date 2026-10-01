@@ -33,6 +33,11 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 : "${SLTE_OUT:=$ROOT/dist}"
 
+# 产物文件名。必须与应用仓库 kernels.json 里该内核的 `artifact` 完全一致：
+# Go 的 c-shared 产物没有 SONAME，应用侧 C 桥记录下来的依赖名就是链接时的文件名，
+# 名字对不上会在运行期报 "library not found"。
+: "${SLTE_ARTIFACT:=libclash.so}"
+
 # ---------------------------------------------------------------------------
 
 case "$SLTE_ABI" in
@@ -76,13 +81,14 @@ if [[ ! -x "$CLANG" ]]; then
 fi
 
 mkdir -p "$SLTE_OUT"
-TARGET="$SLTE_OUT/libclash.so"
+TARGET="$SLTE_OUT/$SLTE_ARTIFACT"
 
 echo "==> 工具链"
 echo "    Go        : $(GOTOOLCHAIN=$SLTE_GO_TOOLCHAIN go version)"
 echo "    CC        : $CLANG"
 echo "    tags      : $SLTE_GO_TAGS"
 echo "    mihomo    : $SLTE_MIHOMO_VERSION"
+echo "    产物名    : $SLTE_ARTIFACT"
 echo "    输出      : $TARGET"
 
 cd "$ROOT"
@@ -106,7 +112,7 @@ go build \
 echo
 echo "==> 产物"
 echo "    $TARGET"
-echo "    $SLTE_OUT/libclash.h"
+echo "    ${TARGET%.so}.h"
 echo "    sha256: $(shasum -a 256 "$TARGET" | cut -d' ' -f1)"
 echo
 echo "把它连同上面的 sha256 一起放回应用仓库的 kernel-core/src/main/jniLibs/${SLTE_ABI}/。"

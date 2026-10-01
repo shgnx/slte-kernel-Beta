@@ -36,7 +36,13 @@ func GetCollector() *DataCollector {
 }
 
 // AddSample 是空操作：不落盘、不上报。
+//
+// 注意必须保留 nil 判断：smart.go 无条件调用 `s.dataCollector.AddSample(...)`，
+// 而未开启 `collectdata` 时该字段为 nil。上游同样以 nil 判断兜底。
 func (c *DataCollector) AddSample(_ *smart.ModelInput, _ *C.Metadata, _ float64, _ string) {
+	if c == nil {
+		return
+	}
 }
 
 // CloseAllCollectors 是空操作。
